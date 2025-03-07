@@ -14,13 +14,14 @@ A Windows desktop application for automated phone number tracing using keyboard 
 ## Requirements
 
 - Windows operating system (Windows 10 or later recommended)
-- .NET 6.0 Runtime
+- [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) - **Required**
 
 ## Installation
 
-1. Download the latest release (PhoneTracer.zip)
-2. Extract all files to a folder on your Windows computer
-3. Run PhoneTracer.exe
+1. Download [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) and install it
+2. Download the latest release (PhoneTracer.zip) from this repository
+3. Extract all files to a folder on your Windows computer
+4. Run PhoneTracer.exe
 
 ## Usage
 
@@ -46,9 +47,16 @@ Note: Names and phone numbers should be separated by a tab character.
 2. Click "Load File" and select your phone numbers file
 3. Click "Start Tracing" or use Ctrl+O to begin
 4. The application will automatically:
-   - Open command prompt
-   - Enter trace commands
+   - Type 't' for trace command
+   - Enter the trace command with the phone number
    - Process each number in sequence
+
+## Troubleshooting
+
+If the application doesn't start:
+1. Make sure you have installed [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+2. Check the logs folder (created next to PhoneTracer.exe) for error messages
+3. Ensure all files are extracted from the ZIP file to the same folder
 
 ## Development
 
