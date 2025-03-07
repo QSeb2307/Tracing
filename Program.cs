@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.IO;
 
 namespace PhoneTracer
 {
@@ -9,16 +10,55 @@ namespace PhoneTracer
         [STAThread]
         static void Main()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
             {
-                Console.WriteLine("This application is designed for Windows only.");
-                Console.WriteLine("It requires Windows Forms and keyboard simulation capabilities.");
-                return;
-            }
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    MessageBox.Show("This application is designed for Windows only.\n" +
+                                  "It requires Windows Forms and keyboard simulation capabilities.",
+                                  "Environment Error",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Error);
+                    return;
+                }
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+
+                // Create log directory if it doesn't exist
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                Directory.CreateDirectory(logPath);
+
+                // Log startup
+                File.AppendAllText(Path.Combine(logPath, "app.log"), 
+                    $"{DateTime.Now}: Application starting\n");
+
+                Application.Run(new MainForm());
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Application crashed: {ex.Message}\n" +
+                                    $"Stack Trace: {ex.StackTrace}";
+
+                // Log error
+                try
+                {
+                    string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                    Directory.CreateDirectory(logPath);
+                    File.AppendAllText(Path.Combine(logPath, "error.log"), 
+                        $"{DateTime.Now}: {errorMessage}\n");
+                }
+                catch
+                {
+                    // If logging fails, at least show the error
+                }
+
+                MessageBox.Show($"Application Error:\n\n{errorMessage}",
+                              "Error",
+                              MessageBoxButtons.OK,
+                              MessageBoxIcon.Error);
+            }
         }
     }
 }

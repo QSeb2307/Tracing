@@ -12,28 +12,67 @@ namespace PhoneTracer
         private KeyboardHook keyboardHook = null!;
         private List<PhoneEntry> phoneEntries = null!;
         private readonly bool isWindowsEnvironment;
+        private readonly string logPath;
 
         public MainForm()
         {
-            InitializeComponent();
-            isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            InitializeServices();
-            CheckEnvironment();
+            try
+            {
+                // Initialize logging
+                logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                Directory.CreateDirectory(logPath);
+                Log("MainForm initialization starting");
+
+                InitializeComponent();
+                isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                InitializeServices();
+                CheckEnvironment();
+
+                Log("MainForm initialization completed successfully");
+            }
+            catch (Exception ex)
+            {
+                Log($"MainForm initialization failed: {ex.Message}\nStack Trace: {ex.StackTrace}");
+                throw; // Let Program.cs handle the error
+            }
+        }
+
+        private void Log(string message)
+        {
+            try
+            {
+                File.AppendAllText(Path.Combine(logPath, "app.log"), 
+                    $"{DateTime.Now}: {message}\n");
+            }
+            catch
+            {
+                // Logging failed, but don't crash the app
+            }
         }
 
         private void InitializeServices()
         {
-            phoneEntries = new List<PhoneEntry>();
-            tracingService = new TracingService();
-            keyboardHook = new KeyboardHook();
+            try
+            {
+                Log("Initializing services");
+                phoneEntries = new List<PhoneEntry>();
+                tracingService = new TracingService();
+                keyboardHook = new KeyboardHook();
 
-            tracingService.OnStatusChanged += UpdateStatus;
-            keyboardHook.OnHotkeyDetected += UpdateStatus;
+                tracingService.OnStatusChanged += UpdateStatus;
+                keyboardHook.OnHotkeyDetected += UpdateStatus;
 
-            // Register global hotkeys
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
+                // Register global hotkeys
+                keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
+                keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
+                keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
+                Log("Services initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Log($"Service initialization failed: {ex.Message}");
+                throw;
+            }
         }
 
         private void CheckEnvironment()
@@ -69,6 +108,7 @@ namespace PhoneTracer
                     }
                     catch (Exception ex)
                     {
+                        Log($"Error loading file: {ex.Message}");
                         MessageBox.Show($"Error loading file: {ex.Message}", "Error", 
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
@@ -132,12 +172,21 @@ namespace PhoneTracer
             }
 
             lblStatus.Text = status;
+            Log($"Status updated: {status}");
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            keyboardHook.Dispose();
-            base.OnFormClosing(e);
+            try
+            {
+                Log("Application closing, disposing resources");
+                keyboardHook.Dispose();
+                base.OnFormClosing(e);
+            }
+            catch (Exception ex)
+            {
+                Log($"Error during form closing: {ex.Message}");
+            }
         }
     }
 }
