@@ -27,9 +27,11 @@ artifacts/
 
 # Build results
 *.exe
-*.zip
 *.dll
 *.pdb
+
+# Exclude release package
+!PhoneTracer-Release.zip
 
 # Files built by Visual Studio
 *_i.c

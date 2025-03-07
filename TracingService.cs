@@ -43,14 +43,14 @@ namespace PhoneTracer
         {
             try
             {
-                // Open command prompt - sending Alt+Space, then 't'
+                // Open command prompt using Windows+R
                 OnStatusChanged?.Invoke("Opening command prompt...");
-                SendKeys.SendWait("%");
+                SendKeys.SendWait("^{ESC}"); // Windows key
+                await Task.Delay(500);
+                SendKeys.SendWait("cmd");
                 await Task.Delay(300);
-                SendKeys.SendWait(" ");
-                await Task.Delay(300);
-                SendKeys.SendWait("t");
-                await Task.Delay(1000); // Longer delay to wait for command prompt
+                SendKeys.SendWait("{ENTER}");
+                await Task.Delay(1000); // Wait for command prompt to open
 
                 // Prepare and copy trace command with proper formatting
                 string traceCommand = $"trace \"{entry.PhoneNumber}\"";
