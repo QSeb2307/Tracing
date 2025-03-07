@@ -43,18 +43,15 @@ namespace PhoneTracer
         {
             try
             {
-                // Open command prompt using Windows+R
-                OnStatusChanged?.Invoke("Opening command prompt...");
-                SendKeys.SendWait("^{ESC}"); // Windows key
+                // Send 't' key for trace command
+                OnStatusChanged?.Invoke("Pressing 't' key...");
+                SendKeys.SendWait("t");
                 await Task.Delay(500);
-                SendKeys.SendWait("cmd");
-                await Task.Delay(300);
-                SendKeys.SendWait("{ENTER}");
-                await Task.Delay(1000); // Wait for command prompt to open
 
-                // Prepare and copy trace command with proper formatting
-                string traceCommand = $"trace \"{entry.PhoneNumber}\"";
+                // Prepare trace command with proper formatting
+                string traceCommand = $"/trace {entry.PhoneNumber}";
                 OnStatusChanged?.Invoke($"Preparing command: {traceCommand}");
+
                 try
                 {
                     // Clear clipboard first
@@ -71,15 +68,14 @@ namespace PhoneTracer
                     return;
                 }
 
-                // Paste command with Ctrl+V
+                // Paste command and press enter
                 OnStatusChanged?.Invoke("Pasting command...");
                 SendKeys.SendWait("^v");
                 await Task.Delay(500);
 
-                // Send Enter and wait longer for the trace to complete
-                OnStatusChanged?.Invoke("Executing trace command...");
+                OnStatusChanged?.Invoke("Sending Enter key...");
                 SendKeys.SendWait("{ENTER}");
-                await Task.Delay(5000); // Much longer delay between traces
+                await Task.Delay(3000); // Wait for trace to complete
             }
             catch (Exception ex)
             {
