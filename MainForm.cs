@@ -8,71 +8,31 @@ namespace PhoneTracer
 {
     public partial class MainForm : Form
     {
-        private TracingService tracingService = null!;
-        private KeyboardHook keyboardHook = null!;
-        private List<PhoneEntry> phoneEntries = null!;
+        private TracingService tracingService;
+        private KeyboardHook keyboardHook;
+        private List<PhoneEntry> phoneEntries;
         private readonly bool isWindowsEnvironment;
-        private readonly string logPath;
 
         public MainForm()
         {
-            try
-            {
-                // Initialize logging
-                logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                Directory.CreateDirectory(logPath);
-                Log("MainForm initialization starting");
+            InitializeComponent();
+            isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-                InitializeComponent();
-                isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-                InitializeServices();
-                CheckEnvironment();
+            // Initialize components
+            phoneEntries = new List<PhoneEntry>();
+            tracingService = new TracingService();
+            keyboardHook = new KeyboardHook();
 
-                Log("MainForm initialization completed successfully");
-            }
-            catch (Exception ex)
-            {
-                Log($"MainForm initialization failed: {ex.Message}\nStack Trace: {ex.StackTrace}");
-                throw; // Let Program.cs handle the error
-            }
-        }
+            // Set up event handlers
+            tracingService.OnStatusChanged += UpdateStatus;
+            keyboardHook.OnHotkeyDetected += UpdateStatus;
 
-        private void Log(string message)
-        {
-            try
-            {
-                File.AppendAllText(Path.Combine(logPath, "app.log"), 
-                    $"{DateTime.Now}: {message}\n");
-            }
-            catch
-            {
-                // Logging failed, but don't crash the app
-            }
-        }
+            // Register global hotkeys
+            keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
+            keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
+            keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
 
-        private void InitializeServices()
-        {
-            try
-            {
-                Log("Initializing services");
-                phoneEntries = new List<PhoneEntry>();
-                tracingService = new TracingService();
-                keyboardHook = new KeyboardHook();
-
-                tracingService.OnStatusChanged += UpdateStatus;
-                keyboardHook.OnHotkeyDetected += UpdateStatus;
-
-                // Register global hotkeys
-                keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
-                keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
-                keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
-                Log("Services initialized successfully");
-            }
-            catch (Exception ex)
-            {
-                Log($"Service initialization failed: {ex.Message}");
-                throw;
-            }
+            CheckEnvironment();
         }
 
         private void CheckEnvironment()
@@ -81,10 +41,7 @@ namespace PhoneTracer
             {
                 btnStartTracing.Enabled = false;
                 btnLoadFile.Enabled = false;
-                UpdateStatus("⚠️ This application requires Windows to function properly.\n" +
-                           "Keyboard simulation and hotkeys are not available in this environment.");
-                MessageBox.Show("This application is designed for Windows environments only.\n\n" +
-                              "Features like keyboard simulation and global hotkeys will not work properly.",
+                MessageBox.Show("This application requires Windows to function properly.",
                               "Environment Warning",
                               MessageBoxButtons.OK,
                               MessageBoxIcon.Warning);
@@ -108,9 +65,8 @@ namespace PhoneTracer
                     }
                     catch (Exception ex)
                     {
-                        Log($"Error loading file: {ex.Message}");
-                        MessageBox.Show($"Error loading file: {ex.Message}", "Error", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"Error loading file: {ex.Message}", 
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -123,6 +79,8 @@ namespace PhoneTracer
 
             foreach (string line in lines)
             {
+                if (string.IsNullOrEmpty(line)) continue;
+
                 string[] parts = line.Split('\t');
                 if (parts.Length == 2)
                 {
@@ -142,25 +100,22 @@ namespace PhoneTracer
             if (phoneEntries.Count > 0)
             {
                 tracingService.Start();
-                UpdateStatus("Tracing started");
             }
             else
             {
-                MessageBox.Show("Please load phone numbers first.", "Warning",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please load phone numbers first.", 
+                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
         private void PauseTracing()
         {
             tracingService.Pause();
-            UpdateStatus("Tracing paused");
         }
 
         private void RestartTracing()
         {
             tracingService.Restart();
-            UpdateStatus("Tracing restarted");
         }
 
         private void UpdateStatus(string status)
@@ -172,21 +127,12 @@ namespace PhoneTracer
             }
 
             lblStatus.Text = status;
-            Log($"Status updated: {status}");
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            try
-            {
-                Log("Application closing, disposing resources");
-                keyboardHook.Dispose();
-                base.OnFormClosing(e);
-            }
-            catch (Exception ex)
-            {
-                Log($"Error during form closing: {ex.Message}");
-            }
+            keyboardHook?.Dispose();
+            base.OnFormClosing(e);
         }
     }
 }
