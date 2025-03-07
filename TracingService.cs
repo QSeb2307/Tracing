@@ -28,9 +28,6 @@ namespace PhoneTracer
                 isRunning = false;
                 isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-                // Initialize SendKeys
-                SendKeys.Initialize();
-
                 if (!isWindowsEnvironment)
                 {
                     OnStatusChanged?.Invoke("Warning: Running in non-Windows environment. Keyboard simulation may not work properly.");
