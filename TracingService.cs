@@ -20,29 +20,58 @@ namespace PhoneTracer
 
         public TracingService()
         {
-            phoneEntries = new List<PhoneEntry>();
-            currentIndex = 0;
-            isPaused = false;
-            isRunning = false;
-            isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-            if (!isWindowsEnvironment)
+            try
             {
-                OnStatusChanged?.Invoke("Warning: Running in non-Windows environment. Keyboard simulation may not work properly.");
+                phoneEntries = new List<PhoneEntry>();
+                currentIndex = 0;
+                isPaused = false;
+                isRunning = false;
+                isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+                // Initialize SendKeys
+                SendKeys.Initialize();
+
+                if (!isWindowsEnvironment)
+                {
+                    OnStatusChanged?.Invoke("Warning: Running in non-Windows environment. Keyboard simulation may not work properly.");
+                }
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"TracingService initialization error: {ex.Message}");
+                throw;
             }
         }
 
         public void SetPhoneEntries(List<PhoneEntry> entries)
         {
-            phoneEntries = entries;
-            currentIndex = 0;
-            OnStatusChanged?.Invoke($"Loaded {entries.Count} phone entries");
+            try
+            {
+                if (entries == null)
+                {
+                    throw new ArgumentNullException(nameof(entries), "Phone entries cannot be null");
+                }
+
+                phoneEntries = entries;
+                currentIndex = 0;
+                OnStatusChanged?.Invoke($"Loaded {entries.Count} phone entries");
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"Error setting phone entries: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task ExecuteTraceSequence(PhoneEntry entry)
         {
             try
             {
+                if (entry == null)
+                {
+                    throw new ArgumentNullException(nameof(entry), "Phone entry cannot be null");
+                }
+
                 // Send 't' key for trace command
                 OnStatusChanged?.Invoke("Pressing 't' key...");
                 SendKeys.SendWait("t");
@@ -85,89 +114,124 @@ namespace PhoneTracer
 
         public async void Start()
         {
-            if (!isWindowsEnvironment)
+            try
             {
-                OnStatusChanged?.Invoke("Error: Cannot start tracing in non-Windows environment");
-                return;
-            }
-
-            if (isRunning && !isPaused)
-            {
-                OnStatusChanged?.Invoke("Tracing is already running");
-                return;
-            }
-
-            if (isPaused)
-            {
-                isPaused = false;
-                OnStatusChanged?.Invoke("Resuming tracing");
-                return;
-            }
-
-            isRunning = true;
-            cancellationTokenSource = new CancellationTokenSource();
-
-            await Task.Run(async () =>
-            {
-                try
+                if (!isWindowsEnvironment)
                 {
-                    while (currentIndex < phoneEntries.Count && !cancellationTokenSource.Token.IsCancellationRequested)
+                    OnStatusChanged?.Invoke("Error: Cannot start tracing in non-Windows environment");
+                    return;
+                }
+
+                if (isRunning && !isPaused)
+                {
+                    OnStatusChanged?.Invoke("Tracing is already running");
+                    return;
+                }
+
+                if (phoneEntries == null || phoneEntries.Count == 0)
+                {
+                    OnStatusChanged?.Invoke("No phone entries loaded");
+                    return;
+                }
+
+                if (isPaused)
+                {
+                    isPaused = false;
+                    OnStatusChanged?.Invoke("Resuming tracing");
+                    return;
+                }
+
+                isRunning = true;
+                cancellationTokenSource = new CancellationTokenSource();
+
+                await Task.Run(async () =>
+                {
+                    try
                     {
-                        if (isPaused)
+                        while (currentIndex < phoneEntries.Count && !cancellationTokenSource.Token.IsCancellationRequested)
                         {
-                            await Task.Delay(100);
-                            continue;
+                            if (isPaused)
+                            {
+                                await Task.Delay(100);
+                                continue;
+                            }
+
+                            var entry = phoneEntries[currentIndex];
+                            OnStatusChanged?.Invoke($"Tracing: {entry.Name} - {entry.PhoneNumber} ({currentIndex + 1}/{phoneEntries.Count})");
+
+                            await ExecuteTraceSequence(entry);
+                            currentIndex++;
+
+                            // Add delay between entries
+                            await Task.Delay(2000);
                         }
 
-                        var entry = phoneEntries[currentIndex];
-                        OnStatusChanged?.Invoke($"Tracing: {entry.Name} - {entry.PhoneNumber} ({currentIndex + 1}/{phoneEntries.Count})");
-
-                        await ExecuteTraceSequence(entry);
-                        currentIndex++;
-
-                        // Add delay between entries
-                        await Task.Delay(2000);
+                        if (currentIndex >= phoneEntries.Count)
+                        {
+                            OnStatusChanged?.Invoke("Tracing completed");
+                            isRunning = false;
+                        }
                     }
-
-                    if (currentIndex >= phoneEntries.Count)
+                    catch (Exception ex)
                     {
-                        OnStatusChanged?.Invoke("Tracing completed");
+                        OnStatusChanged?.Invoke($"Tracing error: {ex.Message}");
                         isRunning = false;
                     }
-                }
-                catch (Exception ex)
-                {
-                    OnStatusChanged?.Invoke($"Tracing error: {ex.Message}");
-                    isRunning = false;
-                }
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"Start error: {ex.Message}");
+                isRunning = false;
+            }
         }
 
         public void Pause()
         {
-            isPaused = true;
-            OnStatusChanged?.Invoke("Tracing paused");
+            try
+            {
+                isPaused = true;
+                OnStatusChanged?.Invoke("Tracing paused");
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"Pause error: {ex.Message}");
+            }
         }
 
         public void Restart()
         {
-            currentIndex = 0;
-            isPaused = false;
-            OnStatusChanged?.Invoke("Tracing restarted");
-
-            if (!isRunning)
+            try
             {
-                Start();
+                currentIndex = 0;
+                isPaused = false;
+                OnStatusChanged?.Invoke("Tracing restarted");
+
+                if (!isRunning)
+                {
+                    Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"Restart error: {ex.Message}");
             }
         }
 
         public void Stop()
         {
-            cancellationTokenSource?.Cancel();
-            isRunning = false;
-            isPaused = false;
-            currentIndex = 0;
-            OnStatusChanged?.Invoke("Tracing stopped");
+            try
+            {
+                cancellationTokenSource?.Cancel();
+                isRunning = false;
+                isPaused = false;
+                currentIndex = 0;
+                OnStatusChanged?.Invoke("Tracing stopped");
+            }
+            catch (Exception ex)
+            {
+                OnStatusChanged?.Invoke($"Stop error: {ex.Message}");
+            }
         }
     }
 }
