@@ -8,8 +8,8 @@ namespace PhoneTracer
 {
     public partial class MainForm : Form
     {
-        private TracingService tracingService;
-        private KeyboardHook keyboardHook;
+        private TracingService? tracingService;
+        private KeyboardHook? keyboardHook;
         private List<PhoneEntry> phoneEntries;
         private readonly bool isWindowsEnvironment;
 
@@ -17,22 +17,33 @@ namespace PhoneTracer
         {
             InitializeComponent();
             isWindowsEnvironment = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-            // Initialize components
             phoneEntries = new List<PhoneEntry>();
-            tracingService = new TracingService();
-            keyboardHook = new KeyboardHook();
 
-            // Set up event handlers
-            tracingService.OnStatusChanged += UpdateStatus;
-            keyboardHook.OnHotkeyDetected += UpdateStatus;
+            try
+            {
+                tracingService = new TracingService();
+                keyboardHook = new KeyboardHook();
 
-            // Register global hotkeys
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
-            keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
+                // Set up event handlers
+                if (tracingService != null && keyboardHook != null)
+                {
+                    tracingService.OnStatusChanged += UpdateStatus;
+                    keyboardHook.OnHotkeyDetected += UpdateStatus;
 
-            CheckEnvironment();
+                    // Register global hotkeys
+                    keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
+                    keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
+                    keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
+                }
+
+                CheckEnvironment();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error initializing application: {ex.Message}", 
+                    "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Exit();
+            }
         }
 
         private void CheckEnvironment()
@@ -61,7 +72,7 @@ namespace PhoneTracer
                     {
                         LoadPhoneNumbers(openFileDialog.FileName);
                         UpdateStatus($"Loaded {phoneEntries.Count} numbers successfully");
-                        btnStartTracing.Enabled = true;
+                        btnStartTracing.Enabled = phoneEntries.Count > 0;
                     }
                     catch (Exception ex)
                     {
@@ -79,7 +90,7 @@ namespace PhoneTracer
 
             foreach (string line in lines)
             {
-                if (string.IsNullOrEmpty(line)) continue;
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
                 string[] parts = line.Split('\t');
                 if (parts.Length == 2)
@@ -92,12 +103,15 @@ namespace PhoneTracer
                 }
             }
 
-            tracingService.SetPhoneEntries(phoneEntries);
+            if (tracingService != null)
+            {
+                tracingService.SetPhoneEntries(phoneEntries);
+            }
         }
 
         private void StartTracing()
         {
-            if (phoneEntries.Count > 0)
+            if (phoneEntries.Count > 0 && tracingService != null)
             {
                 tracingService.Start();
             }
@@ -110,12 +124,12 @@ namespace PhoneTracer
 
         private void PauseTracing()
         {
-            tracingService.Pause();
+            tracingService?.Pause();
         }
 
         private void RestartTracing()
         {
-            tracingService.Restart();
+            tracingService?.Restart();
         }
 
         private void UpdateStatus(string status)

@@ -36,18 +36,25 @@ namespace PhoneTracer
 
         private async Task ExecuteTraceSequence(PhoneEntry entry)
         {
+            // Small delay before starting
+            await Task.Delay(500);
+
             // Press 't' key
+            OnStatusChanged?.Invoke($"Tracing number: {entry.PhoneNumber}");
             SendKeys.SendWait("t");
             await Task.Delay(500);
 
-            // Type the trace command
-            string traceCommand = $"/trace {entry.PhoneNumber}";
-            SendKeys.SendWait(traceCommand);
-            await Task.Delay(500);
+            // Type the trace command with a space
+            SendKeys.SendWait(" /trace ");
+            await Task.Delay(300);
+
+            // Type the phone number
+            SendKeys.SendWait(entry.PhoneNumber);
+            await Task.Delay(300);
 
             // Press Enter
             SendKeys.SendWait("{ENTER}");
-            await Task.Delay(2000);
+            await Task.Delay(2000); // Wait for trace to complete
 
             OnStatusChanged?.Invoke($"Traced: {entry.Name} - {entry.PhoneNumber}");
         }
@@ -84,26 +91,35 @@ namespace PhoneTracer
 
             await Task.Run(async () =>
             {
-                while (currentIndex < phoneEntries.Count && !cancellationTokenSource.Token.IsCancellationRequested)
+                try
                 {
-                    if (isPaused)
+                    while (currentIndex < phoneEntries.Count && !cancellationTokenSource.Token.IsCancellationRequested)
                     {
-                        await Task.Delay(100);
-                        continue;
+                        if (isPaused)
+                        {
+                            await Task.Delay(100);
+                            continue;
+                        }
+
+                        var entry = phoneEntries[currentIndex];
+                        await ExecuteTraceSequence(entry);
+                        currentIndex++;
+
+                        if (!cancellationTokenSource.Token.IsCancellationRequested)
+                        {
+                            await Task.Delay(1000); // Delay between traces
+                        }
                     }
 
-                    var entry = phoneEntries[currentIndex];
-                    OnStatusChanged?.Invoke($"Tracing: {entry.Name} - {entry.PhoneNumber} ({currentIndex + 1}/{phoneEntries.Count})");
-
-                    await ExecuteTraceSequence(entry);
-                    currentIndex++;
-
-                    await Task.Delay(1000);
+                    if (currentIndex >= phoneEntries.Count)
+                    {
+                        OnStatusChanged?.Invoke("Tracing completed");
+                        isRunning = false;
+                    }
                 }
-
-                if (currentIndex >= phoneEntries.Count)
+                catch (Exception ex)
                 {
-                    OnStatusChanged?.Invoke("Tracing completed");
+                    OnStatusChanged?.Invoke($"Error during tracing: {ex.Message}");
                     isRunning = false;
                 }
             });
