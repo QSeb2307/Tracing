@@ -5,8 +5,7 @@ A Windows desktop application for automated phone number tracing using keyboard 
 ## Features
 
 - Load phone numbers from a text file
-- Automated command prompt interaction
-- Keyboard simulation for tracing
+- Automated tracing with 't' key simulation
 - Global hotkeys for control
 - Status updates and logging
 - Pause/Resume functionality
@@ -14,14 +13,14 @@ A Windows desktop application for automated phone number tracing using keyboard 
 ## Requirements
 
 - Windows operating system (Windows 10 or later recommended)
-- [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) - **Required**
+- No additional installations required - everything is included!
 
 ## Installation
 
-1. Download [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) and install it
-2. Download the latest release (PhoneTracer.zip) from this repository
-3. Extract all files to a folder on your Windows computer
-4. Run PhoneTracer.exe
+1. Download PhoneTracer-Release.zip from the latest release
+2. Right-click the ZIP file and select "Extract All..."
+3. Choose a destination folder
+4. Double-click PhoneTracer.exe to run
 
 ## Usage
 
@@ -48,15 +47,24 @@ Note: Names and phone numbers should be separated by a tab character.
 3. Click "Start Tracing" or use Ctrl+O to begin
 4. The application will automatically:
    - Type 't' for trace command
-   - Enter the trace command with the phone number
+   - Enter "/trace" followed by the phone number
    - Process each number in sequence
 
 ## Troubleshooting
 
-If the application doesn't start:
-1. Make sure you have installed [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-2. Check the logs folder (created next to PhoneTracer.exe) for error messages
-3. Ensure all files are extracted from the ZIP file to the same folder
+If the application doesn't start or crashes:
+
+1. Right-click PhoneTracer.exe and select "Properties"
+2. If you see a "Security" warning, check "Unblock" and click OK
+3. Make sure you extracted ALL files from the ZIP file
+4. Check the logs folder (created next to PhoneTracer.exe) for error messages in:
+   - error.log: Contains crash reports and error details
+   - app.log: Contains general application activity
+
+Common Issues:
+- "File Missing" error: Make sure you extracted all files from the ZIP
+- Application crashes: Check error.log for details
+- Tracing not working: Ensure the target window is active when tracing starts
 
 ## Development
 

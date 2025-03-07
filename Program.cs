@@ -12,6 +12,14 @@ namespace PhoneTracer
         {
             try
             {
+                // Create log directory if it doesn't exist
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                Directory.CreateDirectory(logPath);
+
+                // Log startup
+                File.AppendAllText(Path.Combine(logPath, "app.log"), 
+                    $"{DateTime.Now}: Application starting\n");
+
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     MessageBox.Show("This application is designed for Windows only.\n" +
@@ -25,14 +33,6 @@ namespace PhoneTracer
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-
-                // Create log directory if it doesn't exist
-                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                Directory.CreateDirectory(logPath);
-
-                // Log startup
-                File.AppendAllText(Path.Combine(logPath, "app.log"), 
-                    $"{DateTime.Now}: Application starting\n");
 
                 Application.Run(new MainForm());
             }
