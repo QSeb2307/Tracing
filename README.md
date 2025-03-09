@@ -37,14 +37,14 @@ Note: Names and phone numbers should be separated by a tab character.
 - **Load File**: Click to load a phone numbers file
 - **Start Tracing**: Begin the tracing process
 - **Hotkeys**:
-  - Ctrl+O: Start tracing
-  - Ctrl+H: Pause tracing
-  - Ctrl+R: Restart tracing
+  - Alt+O: Start tracing
+  - Alt+H: Pause tracing
+  - Alt+R: Restart tracing
 
 ### Running a Trace
 1. Launch the application
 2. Click "Load File" and select your phone numbers file
-3. Click "Start Tracing" or use Ctrl+O to begin
+3. Click "Start Tracing" or use Alt+O to begin
 4. The application will automatically:
    - Type 't' for trace command
    - Enter "/trace" followed by the phone number
