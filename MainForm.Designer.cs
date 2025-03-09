@@ -45,13 +45,13 @@ namespace PhoneTracer
             this.lblStatus.Size = new System.Drawing.Size(360, 60);
             this.lblStatus.Text = "Ready to load phone numbers...";
 
-            // Hotkeys label
+            // Hotkeys label - Updated to show Alt instead of Ctrl
             this.lblHotkeys.Location = new System.Drawing.Point(20, 140);
             this.lblHotkeys.Size = new System.Drawing.Size(360, 100);
             this.lblHotkeys.Text = "Hotkeys:\n" +
-                                 "Ctrl+O: Start Tracing\n" +
-                                 "Ctrl+H: Pause Tracing\n" +
-                                 "Ctrl+R: Restart Tracing";
+                                "Alt+O: Start Tracing\n" +
+                                "Alt+H: Pause Tracing\n" +
+                                "Alt+R: Restart Tracing";
 
             // Add controls to form
             this.Controls.AddRange(new System.Windows.Forms.Control[] {

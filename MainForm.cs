@@ -30,10 +30,10 @@ namespace PhoneTracer
                     tracingService.OnStatusChanged += UpdateStatus;
                     keyboardHook.OnHotkeyDetected += UpdateStatus;
 
-                    // Register global hotkeys
-                    keyboardHook.RegisterHotKey(Keys.Control, Keys.O, StartTracing);
-                    keyboardHook.RegisterHotKey(Keys.Control, Keys.H, PauseTracing);
-                    keyboardHook.RegisterHotKey(Keys.Control, Keys.R, RestartTracing);
+                    // Register global hotkeys with Alt instead of Control
+                    keyboardHook.RegisterHotKey(Keys.Alt, Keys.O, StartTracing);
+                    keyboardHook.RegisterHotKey(Keys.Alt, Keys.H, PauseTracing);
+                    keyboardHook.RegisterHotKey(Keys.Alt, Keys.R, RestartTracing);
                 }
 
                 CheckEnvironment();

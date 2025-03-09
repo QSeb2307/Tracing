@@ -37,24 +37,24 @@ namespace PhoneTracer
         private async Task ExecuteTraceSequence(PhoneEntry entry)
         {
             // Small delay before starting
-            await Task.Delay(500);
+            await Task.Delay(200); // Reduced from 500ms
 
             // Press 't' key
             OnStatusChanged?.Invoke($"Tracing number: {entry.PhoneNumber}");
             SendKeys.SendWait("t");
-            await Task.Delay(500);
+            await Task.Delay(200); // Reduced from 500ms
 
             // Type the trace command with a space
             SendKeys.SendWait(" /trace ");
-            await Task.Delay(300);
+            await Task.Delay(100); // Reduced from 300ms
 
             // Type the phone number
             SendKeys.SendWait(entry.PhoneNumber);
-            await Task.Delay(300);
+            await Task.Delay(100); // Reduced from 300ms
 
             // Press Enter
             SendKeys.SendWait("{ENTER}");
-            await Task.Delay(2000); // Wait for trace to complete
+            await Task.Delay(1000); // Reduced from 2000ms
 
             OnStatusChanged?.Invoke($"Traced: {entry.Name} - {entry.PhoneNumber}");
         }
@@ -107,7 +107,7 @@ namespace PhoneTracer
 
                         if (!cancellationTokenSource.Token.IsCancellationRequested)
                         {
-                            await Task.Delay(1000); // Delay between traces
+                            await Task.Delay(500); // Reduced from 1000ms - delay between traces
                         }
                     }
 
