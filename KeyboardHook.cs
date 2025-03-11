@@ -49,17 +49,17 @@ namespace PhoneTracer
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                bool control = (Control.ModifierKeys & Keys.Control) != 0;
+                bool alt = (Control.ModifierKeys & Keys.Alt) != 0;
 
-                if (control)
+                if (alt)
                 {
-                    OnHotkeyDetected?.Invoke($"Detected key combination: Ctrl+{(Keys)vkCode}");
+                    OnHotkeyDetected?.Invoke($"Detected key combination: Alt+{(Keys)vkCode}");
 
                     foreach (var hotkey in hotkeyActions)
                     {
                         if (vkCode == hotkey.Key)
                         {
-                            OnHotkeyDetected?.Invoke($"Executing action for hotkey: Ctrl+{(Keys)vkCode}");
+                            OnHotkeyDetected?.Invoke($"Executing action for hotkey: Alt+{(Keys)vkCode}");
                             hotkey.Value.Invoke();
                         }
                     }
@@ -72,14 +72,14 @@ namespace PhoneTracer
         {
             if (!isWindowsEnvironment)
             {
-                OnHotkeyDetected?.Invoke($"Cannot register hotkey Ctrl+{key} in non-Windows environment");
+                OnHotkeyDetected?.Invoke($"Cannot register hotkey Alt+{key} in non-Windows environment");
                 return;
             }
 
-            if (modifier == Keys.Control)
+            if (modifier == Keys.Alt)
             {
                 hotkeyActions[(int)key] = action;
-                OnHotkeyDetected?.Invoke($"Registered hotkey: Ctrl+{key}");
+                OnHotkeyDetected?.Invoke($"Registered hotkey: Alt+{key}");
             }
         }
 
